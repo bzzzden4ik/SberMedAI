@@ -12,7 +12,7 @@ export default function AppRouter() {
         <BrowserRouter>
             <Routes>
                 <Route element={<PublicOnlyRoute />}>
-                    <Route path="/login" element={<LoginPage/>}/>
+                    <Route path="/auth" element={<AuthPage/>}/>
                 </Route>
 
                 <Route element={<ProtectedRoute />}>

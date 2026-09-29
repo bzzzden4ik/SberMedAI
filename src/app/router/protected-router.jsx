@@ -8,7 +8,7 @@ export const ProtectedRoute = () => {
     return <div></div>;
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/auth" replace />;
 };
 
 export const PublicOnlyRoute = () => {
