@@ -1,4 +1,4 @@
-export default function LoginPage () {
+export function LoginPage () {
     return (
         <>
             Login page

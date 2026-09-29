@@ -1,4 +1,4 @@
-export default function ChatPage () {
+export function ChatPage () {
     return (
         <>
             Chat page

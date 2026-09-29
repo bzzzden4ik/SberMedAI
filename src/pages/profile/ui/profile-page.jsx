@@ -1,4 +1,4 @@
-export default function ProfilePage () {
+export function ProfilePage () {
     return (
         <>
             Profile page

@@ -1,1 +1,1 @@
-export { LandigPage } from './ui/landing-page.jsx'
+export { LandingPage } from './ui/landing-page.jsx'

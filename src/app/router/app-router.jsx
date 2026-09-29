@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { LandigPage } from "../../pages/landing";
-import { ProfilePage } from "../../pages/profile";
-import { ChatPage } from "../../pages/chat";
-import { LoginPage } from "../../pages/login";
+import { LandingPage } from "../../pages/landing/index.js";
+import { ProfilePage } from "../../pages/profile/index.js";
+import { ChatPage } from "../../pages/chat/index.js";
+import { LoginPage } from "../../pages/login/index.js";
 
 
 export default function AppRouter() {
@@ -10,8 +10,8 @@ export default function AppRouter() {
         <BrowserRouter>
             <Routes>
                 {/* Common Routes */}
-                <Route path="/introduce" element={<LandigPage/>}/>
-                <Route path="*" element={<LandigPage/>}/>
+                <Route path="/introduce" element={<LandingPage/>}/>
+                <Route path="*" element={<LandingPage/>}/>
                 {/* Unsigned Routes */}
                 <Route path="/login" element={<LoginPage/>}/>
                 {/* Protected Routes */}
