@@ -3,20 +3,25 @@ import { LandingPage } from "@/pages/landing/index.js";
 import { ProfilePage } from "@/pages/profile/index.js";
 import { ChatPage } from "@/pages/chat/index.js";
 import { LoginPage } from "@/pages/login/index.js";
+import { NotFound } from "../../pages/not-found/index.js"
+import { ProtectedRoute, PublicOnlyRoute } from "./protected-router.jsx";
 
 
 export default function AppRouter() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Common Routes */}
+                <Route element={<PublicOnlyRoute />}>
+                    <Route path="/login" element={<LoginPage/>}/>
+                </Route>
+
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/profile" element={<ProfilePage/>}/>
+                    <Route path="/chat" element={<ChatPage/>}/>
+                </Route>
+
                 <Route path="/introduce" element={<LandingPage/>}/>
-                <Route path="*" element={<LandingPage/>}/>
-                {/* Unsigned Routes */}
-                <Route path="/login" element={<LoginPage/>}/>
-                {/* Protected Routes */}
-                <Route path="/profile" element={<ProfilePage/>}/>
-                <Route path="/chat" element={<ChatPage/>}/>
+                <Route path="*" element={<NotFound/>}/>
             </Routes>
         </BrowserRouter>
     )

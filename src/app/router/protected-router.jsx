@@ -1,0 +1,22 @@
+import { Navigate, Outlet } from 'react-router-dom';
+import { useSession } from '@/entities/session/index.js';
+
+export const ProtectedRoute = () => {
+  const { isAuthenticated, isLoading } = useSession();
+
+  if (isLoading) {
+    return <div></div>;
+  }
+
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+};
+
+export const PublicOnlyRoute = () => {
+  const { isAuthenticated, isLoading } = useSession();
+
+  if (isLoading) {
+    return <div></div>;
+  }
+
+  return !isAuthenticated ? <Outlet /> : <Navigate to="/profile" replace />;
+}
