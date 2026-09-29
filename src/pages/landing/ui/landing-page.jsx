@@ -1,7 +1,7 @@
 export function LandingPage () {
     return (
-        <>
-            Landing page
-        </>
+        <main>
+            <h1>Welcome To Landing Page!</h1>
+        </main>
     )
 }
