@@ -4,5 +4,9 @@
     flex-direction: column;
 }
 .login__form a {
-    color: #000;
+    cursor: pointer;
+    color: #1b36ae;
+}
+.login__form a:hover {
+    text-decoration: underline;
 }

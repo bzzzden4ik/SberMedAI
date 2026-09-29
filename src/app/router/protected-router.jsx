@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useSession } from '@/entities/session/index.js';
+import { useSession } from '@/entities/session';
 
 export const ProtectedRoute = () => {
   const { isAuthenticated, isLoading } = useSession();
