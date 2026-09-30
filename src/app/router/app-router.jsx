@@ -25,6 +25,7 @@ export default function AppRouter() {
                 <Route path="/landing" element={<LandingPage/>}/>
                 <Route path="/about" element={<LandingPage/>}/>
                 <Route path="/main" element={<LandingPage/>}/>
+                <Route path="/" element={<LandingPage/>}/>
                 
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
