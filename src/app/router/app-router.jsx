@@ -18,6 +18,7 @@ export default function AppRouter() {
                 <Route element={<ProtectedRoute />}>
                     <Route path="/profile" element={<ProfilePage/>}/>
                     <Route path="/chat" element={<ChatPage/>}/>
+                    <Route path="/chat/:chat_id" element={<ChatPage/>}/>
                 </Route>
 
                 <Route path="/introduction" element={<LandingPage/>}/>
