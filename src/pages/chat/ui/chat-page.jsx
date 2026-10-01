@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react"
+import { useSession } from '../../../entities/session'
 import { useParams } from "react-router-dom"
+
 import { getChat } from "../model/chat-by-id.js"
+import { sendMessage } from "../model/send-message.js"
+
 import { MessageContainer } from "./message.jsx"
 
 
@@ -9,6 +13,8 @@ export function ChatPage () {
     const [messages, setMessages] = useState([])
     const { chat_id } = useParams(); 
     const [currentInput, setCurrentInput] = useState('')
+
+    const { userId } = useSession()
 
     useEffect(() => {
         async function startSearchingChat() {
@@ -23,20 +29,28 @@ export function ChatPage () {
         }
     }, [])
 
+    const handle_question = async () => {
+        await sendMessage(currentInput, chat_id, userId, setMessages)
+    }
+
     return (
         <main>
             <div className="container">
                 <div className="chat__container">
                     <div className="chat__area">
                         {isNewChat ? 
-                            <h1>Привет! Что бы хотели уточнить?</h1>
+                            <h1>Привет! Что Вы хотели уточнить?</h1>
                         : messages?.map((el, idx) => 
                             <MessageContainer key={idx} message={el.text} time={el.timestamp} position={el.sender_id == 0}/>
                         )}
                     </div>
                     <div className="input__area">
                         <input type="text" placeholder="Введите Ваш Запрос" value={currentInput} onChange={(e) => setCurrentInput(e.target.value)}/>
-                        <button>+</button>
+                        {currentInput ?
+                            <button onClick={handle_question}>+</button>
+                            : <button>Rec</button>
+                        }
+                        
                     </div>
                 </div>
             </div>
