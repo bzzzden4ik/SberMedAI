@@ -31,6 +31,7 @@ export function ChatPage () {
 
     const handle_question = async () => {
         try {
+            setIsNewChat(false)
             await sendMessage(currentInput, chat_id, userId, setMessages)
             setCurrentInput("")
         } catch {
