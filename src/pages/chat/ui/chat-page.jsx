@@ -30,7 +30,12 @@ export function ChatPage () {
     }, [])
 
     const handle_question = async () => {
-        await sendMessage(currentInput, chat_id, userId, setMessages)
+        try {
+            await sendMessage(currentInput, chat_id, userId, setMessages)
+            setCurrentInput("")
+        } catch {
+            alert("Проблемы с сообщением")   
+        }
     }
 
     return (

@@ -18,12 +18,9 @@ export const sendMessage = async (message, chat_id, user_id, setMessages) => {
 
     setMessages(prev => [...prev, {
         sender_id: user_id,
-        time_stamp: formattedDate,
+        timestamp: formattedDate,
         text: message,
     }])
-
-    const res = await getAnswer(message, chat_id)
-    if (res) {
-        setItems(prev => [...prev, res.answer]);
-    }
+    const res = await getAnswer(message, chat_id, formattedDate)
+    setMessages(prev => [...prev, res.answer])
 }
