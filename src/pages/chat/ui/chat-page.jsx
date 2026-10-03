@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react"
-import { useSession } from '../../../entities/session'
+import { useSession } from '@/entities/session'
 import { useParams } from "react-router-dom"
 
 import { getChat } from "../model/chat-by-id.js"
 import { sendMessage } from "../model/send-message.js"
 
-import { MessageContainer } from "./message.jsx"
-
+import { MessageContainer } from "@/entities/message"
+import { AudioRecorder } from "@/widgets/audio-recorder"
 
 export function ChatPage () {
     const [isNewChat, setIsNewChat] = useState(true)
@@ -54,9 +54,8 @@ export function ChatPage () {
                         <input type="text" placeholder="Введите Ваш Запрос" value={currentInput} onChange={(e) => setCurrentInput(e.target.value)}/>
                         {currentInput ?
                             <button onClick={handle_question}>+</button>
-                            : <button>Rec</button>
+                            : <AudioRecorder/>
                         }
-                        
                     </div>
                 </div>
             </div>

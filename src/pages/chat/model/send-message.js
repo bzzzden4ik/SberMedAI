@@ -1,4 +1,4 @@
-import { getAnswer } from "../api/message.js"
+import { getAnswer } from "@/entities/message/api/message.js"
 
 
 const formatter = new Intl.DateTimeFormat('ru-RU', {
