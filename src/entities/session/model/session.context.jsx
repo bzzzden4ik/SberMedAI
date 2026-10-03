@@ -14,9 +14,9 @@ export const SessionProvider = ({ children }) => {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const logout = async () => {
+  const logout = async (navigate) => {
     try {
-      await logoutSession();
+      await logoutSession(navigate);
     } finally {
       setUser(null);
     }

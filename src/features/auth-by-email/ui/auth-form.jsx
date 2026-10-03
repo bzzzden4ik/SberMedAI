@@ -8,6 +8,7 @@ import './auth-form.css'
 export function AuthForm() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [userName, setUserName] = useState('')
 
     const [isLogin, setIsLogin] = useState(true)
 
@@ -24,7 +25,14 @@ export function AuthForm() {
         e.preventDefault()
         try {
           const userData = await sendLogin(email, password);
-          setUser(userData);
+          localStorage.setItem('token', userData.access_token)
+          const response = await api.get('/auth/me', {
+            headers: {
+              'Authorization': `Bearer ${userData.access_token}`,
+              'ngrok-skip-browser-warning': "true"
+            }
+          });
+          setUser(response.data)
         } catch (err) {
           console.error(err);
         }
@@ -32,7 +40,7 @@ export function AuthForm() {
     const handleSubmitRegister = async (e) => {
         e.preventDefault()
         try {
-          const userData = await sendRegister(email, password);
+          const userData = await sendRegister(email, password, userName, "patient");
           setUser(userData);
         } catch (err) {
           console.error(err);
@@ -74,6 +82,13 @@ export function AuthForm() {
                     placeholder="i_ivanov@gmail.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
+                />
+                <input 
+                    type="text" 
+                    className="form__input form__name" 
+                    placeholder="Ivanov Ivan"
+                    value={userName}
+                    onChange={e => setUserName(e.target.value)}
                 />
                 <input 
                     type="password" 

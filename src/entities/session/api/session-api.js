@@ -2,10 +2,17 @@ import { api } from "@/shared/api/axios-client.js";
 
 
 export const fetchSession = async () => {
-  const response = await api.get('/auth/me');
+  const token = localStorage.getItem('token')
+  const response = await api.get('/auth/me', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'ngrok-skip-browser-warning': "true"
+    }
+  });
   return response.data
 }
 
-export const logoutSession = async () => {
-  await api.get('/auth/logout')
+export const logoutSession = async (navigate) => {
+  localStorage.clear();
+  navigate('/auth')
 }
