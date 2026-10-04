@@ -15,6 +15,7 @@ export function ChatPage () {
     const [currentInput, setCurrentInput] = useState('')
 
     const { userId } = useSession()
+    const [chatId, setChatId] = useState(chat_id)
 
     useEffect(() => {
         async function startSearchingChat() {
@@ -54,7 +55,7 @@ export function ChatPage () {
                         <input type="text" placeholder="Введите Ваш Запрос" value={currentInput} onChange={(e) => setCurrentInput(e.target.value)}/>
                         {currentInput ?
                             <button onClick={handle_question}>+</button>
-                            : <AudioRecorder/>
+                            : <AudioRecorder />
                         }
                     </div>
                 </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import { sendLogin, sendRegister } from '../model/sign-in-by-email.js'
 import { useSession } from '@/entities/session'
+import { api } from '@/shared/api/axios-client.js';
 import './auth-form.css'
 
 
@@ -19,24 +20,24 @@ export function AuthForm() {
         if (isAuthenticated) {
             navigate('/profile', { replace: true })
         }
-    }, [isAuthenticated, navigate])
+    }, [isAuthenticated])
 
     const handleSubmitLogin = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         try {
-          const userData = await sendLogin(email, password);
-          localStorage.setItem('token', userData.access_token)
-          const response = await api.get('/auth/me', {
-            headers: {
-              'Authorization': `Bearer ${userData.access_token}`,
-              'ngrok-skip-browser-warning': "true"
-            }
-          });
-          setUser(response.data)
+            const userData = await sendLogin(email, password);
+            localStorage.setItem('token', userData.access_token);
+            const response = await api.get('/auth/me', {
+                headers: {
+                    'Authorization': `Bearer ${userData.access_token}`
+                }
+            });
+            setUser(response.data);
+            navigate('/profile', { replace: true });
         } catch (err) {
-          console.error(err);
+            console.error(err);
         }
-    }
+    };
     const handleSubmitRegister = async (e) => {
         e.preventDefault()
         try {

@@ -6,7 +6,6 @@ export const fetchSession = async () => {
   const response = await api.get('/auth/me', {
     headers: {
       'Authorization': `Bearer ${token}`,
-      'ngrok-skip-browser-warning': "true"
     }
   });
   return response.data

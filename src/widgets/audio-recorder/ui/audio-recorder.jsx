@@ -1,25 +1,30 @@
-import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
-import { api } from '../../../shared/api/axios-client.js'
+import React, { useState, useRef } from 'react';
+import { useSession } from '../../../entities/session';
+import { api } from '@/shared/api/axios-client.js'
+import './CircularAudioRecorder.css';
 
 export const AudioRecorder = () => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
+  // Состояния: 'idle' | 'recording' | 'uploading'
+  const [status, setStatus] = useState('idle');
+
+  const {userId} = useSession()
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  const canvasRef = useRef(null);
-  const animationFrameRef = useRef(null);
-  const audioContextRef = useRef(null);
 
-  // 1. Старт записи + инициализация визуализатора
+  const handleRecordClick = async () => {
+    if (status === 'idle') {
+      await startRecording();
+    } else if (status === 'recording') {
+      stopRecording();
+    }
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
 
-      // Определяем поддерживаемый MIME-тип
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
         : 'audio/mp4';
@@ -28,161 +33,104 @@ export const AudioRecorder = () => {
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
-      mediaRecorder.onstop = () => {
+      // Как только запись остановлена — сразу собираем Blob и отправляем
+      mediaRecorder.onstop = async () => {
         const finalBlob = new Blob(audioChunksRef.current, { type: mimeType });
-        setAudioBlob(finalBlob);
-
-        // Останавливаем треки микрофона
+        
+        // Отключаем микрофон
         stream.getTracks().forEach((track) => track.stop());
+
+        // Сразу запускаем отправку
+        await sendAudio(finalBlob);
       };
 
       mediaRecorder.start();
-      setIsRecording(true);
-      setAudioBlob(null);
-
-      // Запуск Canvas-анимации
-      setupVisualizer(stream);
+      setStatus('recording');
     } catch (err) {
       console.error('Ошибка доступа к микрофону:', err);
+      alert('Нет доступа к микрофону');
     }
   };
 
-  // 2. Остановка записи
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && status === 'recording') {
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
     }
   };
 
-  // 3. Отрисовка анимации на Canvas через Web Audio API
-  const setupVisualizer = (stream) => {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    const audioContext = new AudioContextClass();
-    audioContextRef.current = audioContext;
+  // Автоматическая отправка
+  const sendAudio = async (blob) => {
+    if (!blob || !api) return;
 
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 64; // Размер выборки частот
-
-    const source = audioContext.createMediaStreamSource(stream);
-    source.connect(analyser);
-
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const draw = () => {
-      animationFrameRef.current = requestAnimationFrame(draw);
-      analyser.getByteFrequencyData(dataArray);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const barWidth = (canvas.width / dataArray.length) * 1.5;
-      let x = 0;
-
-      for (let i = 0; i < dataArray.length; i++) {
-        const barHeight = (dataArray[i] / 255) * canvas.height;
-
-        ctx.fillStyle = 'rgb(99, 102, 241)';
-        ctx.beginPath();
-        
-        // Фоллбек для старых браузеров без roundRect
-        if (ctx.roundRect) {
-          ctx.roundRect(x, canvas.height - barHeight, barWidth - 2, barHeight, 4);
-        } else {
-          ctx.rect(x, canvas.height - barHeight, barWidth - 2, barHeight);
-        }
-        
-        ctx.fill();
-        x += barWidth;
-      }
-    };
-
-    draw();
-  };
-
-  // 4. Отправка Blob на бэкенд
-  const sendAudio = async () => {
-    if (!audioBlob) return;
-
-    setIsUploading(true);
+    setStatus('uploading');
     const formData = new FormData();
+    const fileExtension = blob.type.includes('webm') ? 'webm' : 'mp4';
 
-    const fileExtension = audioBlob.type.includes('webm') ? 'webm' : 'mp4';
-    formData.append('file', audioBlob, `voice_note.${fileExtension}`);
+    formData.append('file', blob, `voice_record.${fileExtension}`);
+    if (userId) {
+      formData.append('patient_id', userId);
+    }
 
     try {
-        const response = await api.post('/upload-audio', {
-            body: formData
-        })
-
-      if (response.ok) {
-        alert('Голосовое успешно отправлено!');
-        setAudioBlob(null);
-      } else {
-        alert('Ошибка при отправке');
-      }
+      await api.post('/medical-records/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+      alert('Голосовое успешно отправлено!');
     } catch (err) {
       console.error('Ошибка отправки:', err);
+      alert('Ошибка при загрузке файла.');
     } finally {
-      setIsUploading(false);
+      // Возвращаем кнопку в исходный вид
+      setStatus('idle');
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-      if (audioContextRef.current) audioContextRef.current.close();
-    };
-  }, []);
+  // Иконки
+  const MicroIcon = () => (
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+    </svg>
+  );
+
+  const StopIcon = () => (
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+    </svg>
+  );
+
+  const SpinnerIcon = () => (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" className="spin-loader">
+      <circle cx="12" cy="12" r="10" strokeWidth="4" opacity="0.25" />
+      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '300px' }}>
-      <canvas
-        ref={canvasRef}
-        width={100}
-        height={100}
-        style={{
-          background: '#f3f4f6',
-          borderRadius: '8px',
-          display: isRecording ? 'block' : 'none',
-        }}
-      />
+    <div className="recorder-container">
+      <div className={`recorder-wrapper ${status === 'recording' ? 'is-recording' : ''}`}>
+        
+        {/* Анимационные волны при записи */}
+        <div className="pulse-ring"></div>
+        <div className="pulse-ring delay-1"></div>
+        <div className="pulse-ring delay-2"></div>
 
-      {!isRecording ? (
-        <button onClick={startRecording}>
-          Записать голосовое
+        <button 
+          className={`circular-button state-${status}`} 
+          onClick={handleRecordClick}
+          disabled={status === 'uploading'}
+        >
+          {status === 'idle' && <MicroIcon />}
+          {status === 'recording' && <StopIcon />}
+          {status === 'uploading' && <SpinnerIcon />}
         </button>
-      ) : (
-        <button onClick={stopRecording} style={{ background: '#ef4444', color: '#fff' }}>
-          Остановить запись
-        </button>
-      )}
-
-      {audioBlob && !isRecording && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <audio src={URL.createObjectURL(audioBlob)} controls />
-          <button onClick={sendAudio} disabled={isUploading}>
-            {isUploading ? 'Отправка...' : 'Отправить на сервер'}
-          </button>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
